@@ -38,6 +38,15 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) error {
 	return err
 }
 
+const trimPosts = `-- name: TrimPosts :exec
+delete from posts where create_ts < unixepoch('now', '-24 hours')
+`
+
+func (q *Queries) TrimPosts(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, trimPosts)
+	return err
+}
+
 const updateLikes = `-- name: UpdateLikes :exec
 update posts set likes = likes + 1 where uri = ?
 `

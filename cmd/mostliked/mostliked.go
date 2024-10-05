@@ -75,6 +75,21 @@ func createDraftPost(commit jetstream.Commit) (DraftPost, error) {
 	return draft, nil
 }
 
+func trimPostsTable(ctx context.Context, queries *mostliked.Queries) {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			log.Println("trimming posts")
+			if err := queries.TrimPosts(ctx); err != nil {
+				log.Println("error trimming posts")
+			}
+		}
+	}
+}
+
 func processEvents(events <-chan []byte) {
 	ctx := context.Background()
 
@@ -85,6 +100,8 @@ func processEvents(events <-chan []byte) {
 	if _, err := db.ExecContext(ctx, ddl); err != nil {
 		log.Fatal("couldn't create tables")
 	}
+	defer db.Close()
+
 	queries := mostliked.New(db)
 
 	drafts := ccache.New(ccache.Configure[DraftPost]().MaxSize(50_000).GetsPerPromote(1))
@@ -102,6 +119,8 @@ func processEvents(events <-chan []byte) {
 		FromLanguages(languages...).
 		WithPreloadedLanguageModels().
 		Build()
+
+	go trimPostsTable(ctx, queries)
 
 	for evt := range events {
 		var like appbsky.FeedLike
