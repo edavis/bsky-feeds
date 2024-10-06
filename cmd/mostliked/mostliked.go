@@ -25,7 +25,6 @@ var ddl string
 const MinLikes = 5
 
 type DraftPost struct {
-	Text     string
 	Language lingua.Language
 	Created  int64
 	Likes    int64
@@ -61,20 +60,6 @@ func safeTimestamp(input string) int64 {
 	}
 }
 
-func createDraftPost(commit jetstream.Commit) (DraftPost, error) {
-	var post appbsky.FeedPost
-	if err := json.Unmarshal(commit.Record, &post); err != nil {
-		log.Println("error parsing appbsky.FeedPost")
-		return DraftPost{}, err
-	}
-	draft := DraftPost{
-		Text:    post.Text,
-		Created: safeTimestamp(post.CreatedAt),
-		Likes:   0,
-	}
-	return draft, nil
-}
-
 func trimPostsTable(ctx context.Context, queries *mostliked.Queries) {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -88,6 +73,22 @@ func trimPostsTable(ctx context.Context, queries *mostliked.Queries) {
 			}
 		}
 	}
+}
+
+func findDetectableText(post appbsky.FeedPost) string {
+	// if we have text, detect against that
+	// no text but we do have images, detect against first alt text
+
+	if post.Text != "" {
+		return post.Text
+	} else if post.Embed.EmbedImages != nil {
+		for _, image := range post.Embed.EmbedImages.Images {
+			if image.Alt != "" {
+				return image.Alt
+			}
+		}
+	}
+	return ""
 }
 
 func processEvents(events <-chan []byte) {
@@ -137,13 +138,23 @@ func processEvents(events <-chan []byte) {
 			continue
 		}
 		if commit.Collection == "app.bsky.feed.post" {
+			var post appbsky.FeedPost
 			postUri := fmt.Sprintf("at://%s/%s/%s", event.Did, commit.Collection, commit.RKey)
-			draftPost, err := createDraftPost(commit)
-			if err != nil {
+			if err := json.Unmarshal(commit.Record, &post); err != nil {
+				log.Println("error parsing appbsky.FeedPost")
 				continue
 			}
-			language, _ := detector.DetectLanguageOf(draftPost.Text)
-			draftPost.Language = language
+			draftPost := DraftPost{
+				Created: safeTimestamp(post.CreatedAt),
+				Likes: 0,
+			}
+			if text := findDetectableText(post); text != "" {
+				language, _ := detector.DetectLanguageOf(text)
+				draftPost.Language = language
+			} else if len(post.Langs) > 0 {
+				iso := lingua.GetIsoCode639_1FromValue(post.Langs[0])
+				draftPost.Language = lingua.GetLanguageFromIsoCode639_1(iso)
+			}
 			drafts.Set(postUri, draftPost, 30*time.Minute)
 			continue
 		} else if commit.Collection == "app.bsky.feed.like" {
