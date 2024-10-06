@@ -173,7 +173,7 @@ func processEvents(events <-chan []byte) {
 				continue
 			}
 			drafts.Delete(like.Subject.Uri)
-			log.Println("graduating", like.Subject.Uri)
+			log.Println("storing", like.Subject.Uri, "in database")
 			err := queries.InsertPost(ctx, mostliked.InsertPostParams{
 				Uri:      like.Subject.Uri,
 				CreateTs: draftPost.Created,
@@ -208,6 +208,7 @@ func main() {
 	jetstreamEvents := make(chan []byte)
 	go processEvents(jetstreamEvents)
 
+	log.Println("starting up")
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
