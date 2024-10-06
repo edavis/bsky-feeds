@@ -162,8 +162,6 @@ func processEvents(events <-chan []byte) {
 				log.Println("error parsing appbsky.FeedLike")
 				continue
 			}
-		} else {
-			continue
 		}
 
 		draft := drafts.Get(like.Subject.Uri)
@@ -201,7 +199,7 @@ func processEvents(events <-chan []byte) {
 }
 
 func main() {
-	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:6008/subscribe", nil)
+	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:6008/subscribe?wantedCollections=app.bsky.feed.post&wantedCollections=app.bsky.feed.like", nil)
 	if err != nil {
 		log.Fatal("websocket connection error:", err)
 	}
