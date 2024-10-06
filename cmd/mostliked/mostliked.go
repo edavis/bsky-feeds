@@ -146,7 +146,7 @@ func processEvents(events <-chan []byte) {
 			}
 			draftPost := DraftPost{
 				Created: safeTimestamp(post.CreatedAt),
-				Likes: 0,
+				Likes:   0,
 			}
 			if text := findDetectableText(post); text != "" {
 				language, _ := detector.DetectLanguageOf(text)
