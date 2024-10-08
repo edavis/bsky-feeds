@@ -3,20 +3,20 @@ package main
 import (
 	"net/http"
 
+	"github.com/edavis/bsky-feeds/mostliked"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/edavis/bsky-feeds/mostliked"
 )
 
 type SkeletonRequest struct {
-	Feed string `query:"feed"`
-	Limit int64 `query:"limit"`
+	Feed   string `query:"feed"`
+	Limit  int64  `query:"limit"`
 	Offset string `query:"offset"`
 }
 
 type SkeletonResponse struct {
 	Cursor string `json:"cursor,omitempty"`
-	Feed []Post `json:"feed"`
+	Feed   []Post `json:"feed"`
 }
 
 type Post struct {
@@ -39,9 +39,9 @@ func getFeedSkeleton(c echo.Context) error {
 
 	var posts []Post
 	uris := mostliked.Feed(mostliked.FeedViewParams{
-		Limit: req.Limit,
+		Limit:  req.Limit,
 		Offset: req.Offset,
-		Langs: hdr.Langs,
+		Langs:  hdr.Langs,
 	})
 	for _, uri := range uris {
 		posts = append(posts, Post{uri})

@@ -11,9 +11,9 @@ import (
 )
 
 type FeedViewParams struct {
-	Limit int64
+	Limit  int64
 	Offset string
-	Langs []string
+	Langs  []string
 }
 
 func Feed(args FeedViewParams) []string {
@@ -31,7 +31,7 @@ func Feed(args FeedViewParams) []string {
 
 	queries := db.New(dbCnx)
 	rows, err := queries.ViewFeed(ctx, db.ViewFeedParams{
-		Limit: args.Limit,
+		Limit:  args.Limit,
 		Offset: int64(offset),
 	})
 	if err != nil {
