@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/gorilla/websocket"
-
 	"github.com/edavis/bsky-feeds/pkg/mostliked"
+	"github.com/gorilla/websocket"
 )
 
 func main() {
