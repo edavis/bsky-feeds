@@ -34,7 +34,7 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 		log.Println("error fetching rows")
 	}
 	var cursor string
-	var posts []*appbsky.FeedDefs_SkeletonFeedPost
+	posts := make([]*appbsky.FeedDefs_SkeletonFeedPost, 0, params.Limit)
 	for _, row := range rows {
 		posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: row.Uri})
 		cursor = row.Uri
