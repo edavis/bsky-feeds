@@ -24,9 +24,9 @@ var ddl string
 const MinLikes = 5
 
 type DraftPost struct {
-	Language lingua.Language
-	Created  int64
-	Likes    int64
+	Languages []lingua.Language
+	Created   int64
+	Likes     int64
 }
 
 func safeTimestamp(input string) int64 {
@@ -149,10 +149,13 @@ func Handler(events <-chan []byte) {
 			}
 			if text := findDetectableText(post); text != "" {
 				language, _ := detector.DetectLanguageOf(text)
-				draftPost.Language = language
+				draftPost.Languages = []lingua.Language{language}
 			} else if len(post.Langs) > 0 {
-				iso := lingua.GetIsoCode639_1FromValue(post.Langs[0])
-				draftPost.Language = lingua.GetLanguageFromIsoCode639_1(iso)
+				var iso lingua.IsoCode639_1
+				for _, lang := range post.Langs {
+					iso = lingua.GetIsoCode639_1FromValue(lang)
+					draftPost.Languages = append(draftPost.Languages, lingua.GetLanguageFromIsoCode639_1(iso))
+				}
 			}
 			drafts.Set(postUri, draftPost, 30*time.Minute)
 			continue
@@ -181,12 +184,14 @@ func Handler(events <-chan []byte) {
 			if err != nil {
 				log.Println("error inserting post")
 			}
-			err = queries.InsertLang(ctx, db.InsertLangParams{
-				Uri:  like.Subject.Uri,
-				Lang: strings.ToLower(draftPost.Language.IsoCode639_1().String()),
-			})
-			if err != nil {
-				log.Println("error inserting lang")
+			for _, lang := range draftPost.Languages {
+				err = queries.InsertLang(ctx, db.InsertLangParams{
+					Uri:  like.Subject.Uri,
+					Lang: strings.ToLower(lang.IsoCode639_1().String()),
+				})
+				if err != nil {
+					log.Println("error inserting lang")
+				}
 			}
 		} else {
 			err := queries.UpdateLikes(ctx, like.Subject.Uri)
