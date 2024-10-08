@@ -12,7 +12,7 @@ import (
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	jetstream "github.com/bluesky-social/jetstream/pkg/models"
-	"github.com/edavis/bsky-feeds/pkg/mostliked"
+	db "github.com/edavis/bsky-feeds/pkg/mostliked"
 	"github.com/gorilla/websocket"
 	"github.com/karlseguin/ccache/v3"
 	_ "github.com/mattn/go-sqlite3"
@@ -60,7 +60,7 @@ func safeTimestamp(input string) int64 {
 	}
 }
 
-func trimPostsTable(ctx context.Context, queries *mostliked.Queries) {
+func trimPostsTable(ctx context.Context, queries *db.Queries) {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
 
@@ -94,16 +94,16 @@ func findDetectableText(post appbsky.FeedPost) string {
 func processEvents(events <-chan []byte) {
 	ctx := context.Background()
 
-	db, err := sql.Open("sqlite3", "db/mostliked.db?_journal=WAL&_fk=on")
+	dbCnx, err := sql.Open("sqlite3", "db/mostliked.db?_journal=WAL&_fk=on")
 	if err != nil {
 		log.Fatal("error opening db")
 	}
-	if _, err := db.ExecContext(ctx, ddl); err != nil {
+	if _, err := dbCnx.ExecContext(ctx, ddl); err != nil {
 		log.Fatal("couldn't create tables")
 	}
-	defer db.Close()
+	defer dbCnx.Close()
 
-	queries := mostliked.New(db)
+	queries := db.New(dbCnx)
 
 	drafts := ccache.New(ccache.Configure[DraftPost]().MaxSize(50_000).GetsPerPromote(1))
 
@@ -174,7 +174,7 @@ func processEvents(events <-chan []byte) {
 			}
 			drafts.Delete(like.Subject.Uri)
 			log.Println("storing", like.Subject.Uri, "in database")
-			err := queries.InsertPost(ctx, mostliked.InsertPostParams{
+			err := queries.InsertPost(ctx, db.InsertPostParams{
 				Uri:      like.Subject.Uri,
 				CreateTs: draftPost.Created,
 				Likes:    draftPost.Likes,
@@ -182,7 +182,7 @@ func processEvents(events <-chan []byte) {
 			if err != nil {
 				log.Println("error inserting post")
 			}
-			err = queries.InsertLang(ctx, mostliked.InsertLangParams{
+			err = queries.InsertLang(ctx, db.InsertLangParams{
 				Uri:  like.Subject.Uri,
 				Lang: strings.ToLower(draftPost.Language.IsoCode639_1().String()),
 			})
