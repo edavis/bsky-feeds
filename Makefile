@@ -1,9 +1,9 @@
 all: bin/mostliked bin/feedweb
 
-bin/mostliked: cmd/mostliked/*.go pkg/mostliked/*.go db/mostliked/*.go
+bin/mostliked: cmd/mostliked/main.go pkg/mostliked/handler.go db/mostliked/*.go
 	go build -o $@ ./cmd/mostliked
 
-bin/feedweb: cmd/feedweb/*.go pkg/*/*.go db/*/*.go
+bin/feedweb: cmd/feedweb/main.go pkg/*/view.go db/*/*.go
 	go build -o $@ ./cmd/feedweb
 
 .PHONY: clean
