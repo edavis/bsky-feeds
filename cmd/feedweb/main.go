@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/edavis/bsky-feeds/pkg/mostliked"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -12,15 +13,6 @@ type SkeletonRequest struct {
 	Feed   string `query:"feed"`
 	Limit  int64  `query:"limit"`
 	Offset string `query:"offset"`
-}
-
-type SkeletonResponse struct {
-	Cursor string `json:"cursor,omitempty"`
-	Feed   []Post `json:"feed"`
-}
-
-type Post struct {
-	Uri string `json:"post"`
 }
 
 type SkeletonHeader struct {
@@ -37,19 +29,19 @@ func getFeedSkeleton(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
-	var posts []Post
+	var posts []*appbsky.FeedDefs_SkeletonFeedPost
 	uris := mostliked.Feed(mostliked.FeedViewParams{
 		Limit:  req.Limit,
 		Offset: req.Offset,
 		Langs:  hdr.Langs,
 	})
 	for _, uri := range uris {
-		posts = append(posts, Post{uri})
+		posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: uri})
 	}
-	response := SkeletonResponse{
+
+	return c.JSON(http.StatusOK, appbsky.FeedGetFeedSkeleton_Output{
 		Feed: posts,
-	}
-	return c.JSON(http.StatusOK, response)
+	})
 }
 
 func main() {
