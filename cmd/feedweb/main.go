@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
+	"github.com/edavis/bsky-feeds/pkg/feeds"
 	"github.com/edavis/bsky-feeds/pkg/mostliked"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -19,6 +20,8 @@ type SkeletonHeader struct {
 	Langs []string `header:"Accept-Language"`
 }
 
+type FeedLookup map[string]func(feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output
+
 func getFeedSkeleton(c echo.Context) error {
 	var req SkeletonRequest
 	if err := c.Bind(&req); err != nil {
@@ -29,19 +32,21 @@ func getFeedSkeleton(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
-	var posts []*appbsky.FeedDefs_SkeletonFeedPost
-	uris := mostliked.Feed(mostliked.FeedViewParams{
+	generators := FeedLookup{
+		"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked": mostliked.Feed,
+	}
+	params := feeds.FeedgenParams{
+		Feed:   req.Feed,
 		Limit:  req.Limit,
 		Offset: req.Offset,
 		Langs:  hdr.Langs,
-	})
-	for _, uri := range uris {
-		posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: uri})
 	}
-
-	return c.JSON(http.StatusOK, appbsky.FeedGetFeedSkeleton_Output{
-		Feed: posts,
-	})
+	feedFunc, ok := generators[req.Feed]
+	if !ok {
+		return c.String(http.StatusNotFound, "feed not found")
+	}
+	feed := feedFunc(params)
+	return c.JSON(http.StatusOK, feed)
 }
 
 func main() {

@@ -6,17 +6,13 @@ import (
 	"log"
 	"strconv"
 
+	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	db "github.com/edavis/bsky-feeds/db/mostliked"
+	"github.com/edavis/bsky-feeds/pkg/feeds"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type FeedViewParams struct {
-	Limit  int64
-	Offset string
-	Langs  []string
-}
-
-func Feed(args FeedViewParams) []string {
+func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	ctx := context.Background()
 	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&mode=ro")
 	if err != nil {
@@ -24,22 +20,27 @@ func Feed(args FeedViewParams) []string {
 	}
 	defer dbCnx.Close()
 
-	offset, err := strconv.Atoi(args.Offset)
+	offset, err := strconv.Atoi(params.Offset)
 	if err != nil {
 		log.Println("error converting offset to integer")
 	}
 
 	queries := db.New(dbCnx)
 	rows, err := queries.ViewFeed(ctx, db.ViewFeedParams{
-		Limit:  args.Limit,
+		Limit:  params.Limit,
 		Offset: int64(offset),
 	})
 	if err != nil {
 		log.Println("error fetching rows")
 	}
-	var uris []string
+	var cursor string
+	var posts []*appbsky.FeedDefs_SkeletonFeedPost
 	for _, row := range rows {
-		uris = append(uris, row.Uri)
+		posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: row.Uri})
+		cursor = row.Uri
 	}
-	return uris
+	return appbsky.FeedGetFeedSkeleton_Output{
+		Cursor: &cursor,
+		Feed: posts,
+	}
 }
