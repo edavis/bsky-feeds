@@ -61,18 +61,12 @@ func findDetectableText(post appbsky.FeedPost) string {
 	return ""
 }
 
-func Handler(events <-chan []byte) {
+func Handler(events <-chan []byte, dbCnx *sql.DB) {
 	ctx := context.Background()
 
-	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on")
-	if err != nil {
-		log.Fatal("error opening db")
-	}
 	if _, err := dbCnx.ExecContext(ctx, ddl); err != nil {
 		log.Fatal("couldn't create tables")
 	}
-	defer dbCnx.Close()
-
 	queries := db.New(dbCnx)
 
 	drafts := ccache.New(ccache.Configure[DraftPost]().MaxSize(50_000).GetsPerPromote(1))
