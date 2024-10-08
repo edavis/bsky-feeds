@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/edavis/bsky-feeds/mostliked"
+	"github.com/edavis/bsky-feeds/pkg/mostliked"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )

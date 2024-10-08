@@ -6,7 +6,7 @@ import (
 	"log"
 	"strconv"
 
-	db "github.com/edavis/bsky-feeds/pkg/mostliked"
+	db "github.com/edavis/bsky-feeds/db/mostliked"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -18,7 +18,7 @@ type FeedViewParams struct {
 
 func Feed(args FeedViewParams) []string {
 	ctx := context.Background()
-	dbCnx, err := sql.Open("sqlite3", "db/mostliked.db?_journal=WAL&_fk=on")
+	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on")
 	if err != nil {
 		log.Fatal("error opening db")
 	}

@@ -1,9 +1,9 @@
 version: "2"
 sql:
   - engine: "sqlite"
-    queries: "cmd/mostliked/query.sql"
-    schema: "cmd/mostliked/schema.sql"
+    queries: "pkg/mostliked/query.sql"
+    schema: "pkg/mostliked/schema.sql"
     gen:
       go:
         package: "mostliked"
-        out: "pkg/mostliked"
+        out: "db/mostliked"
