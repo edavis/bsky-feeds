@@ -18,7 +18,7 @@ type FeedViewParams struct {
 
 func Feed(args FeedViewParams) []string {
 	ctx := context.Background()
-	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on")
+	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&mode=ro")
 	if err != nil {
 		log.Fatal("error opening db")
 	}
