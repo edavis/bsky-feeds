@@ -13,6 +13,7 @@ import (
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	jetstream "github.com/bluesky-social/jetstream/pkg/models"
 	db "github.com/edavis/bsky-feeds/db/mostliked"
+	"github.com/edavis/bsky-feeds/pkg/feeds"
 	"github.com/karlseguin/ccache/v3"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pemistahl/lingua-go"
@@ -27,36 +28,6 @@ type DraftPost struct {
 	Languages []lingua.Language
 	Created   int64
 	Likes     int64
-}
-
-func safeTimestamp(input string) int64 {
-	utcNow := time.Now().UTC()
-	if input == "" {
-		return utcNow.Unix()
-	}
-	var t time.Time
-	var err error
-	layouts := []string{
-		time.RFC3339,
-	}
-	for _, layout := range layouts {
-		if t, err = time.Parse(layout, input); err == nil {
-			break
-		}
-	}
-	if err != nil {
-		return utcNow.Unix()
-	}
-	if t.Unix() <= 0 {
-		return utcNow.Unix()
-	} else if t.Add(-2*time.Minute).Compare(utcNow) == -1 {
-		// accept as long as parsed time is no more than 2 minutes in the future
-		return t.Unix()
-	} else if t.Compare(utcNow) == 1 {
-		return utcNow.Unix()
-	} else {
-		return utcNow.Unix()
-	}
 }
 
 func trimPostsTable(ctx context.Context, queries *db.Queries) {
@@ -144,7 +115,7 @@ func Handler(events <-chan []byte) {
 				continue
 			}
 			draftPost := DraftPost{
-				Created: safeTimestamp(post.CreatedAt),
+				Created: feeds.SafeTimestamp(post.CreatedAt),
 				Likes:   0,
 			}
 			if text := findDetectableText(post); text != "" {
