@@ -35,9 +35,8 @@ func main() {
 	go func(conn *websocket.Conn, dbCnx *sql.DB, jetstreamEvents chan []byte) {
 		<-signalChan
 		log.Println("shutting down...")
-		close(jetstreamEvents)
-		dbCnx.Close()
 		conn.Close()
+		dbCnx.Close()
 		close(cleanupDone)
 	}(conn, dbCnx, jetstreamEvents)
 
