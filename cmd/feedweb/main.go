@@ -51,9 +51,13 @@ func getFeedSkeleton(c echo.Context) error {
 }
 
 func describeFeedGenerator(c echo.Context) error {
+	type feed struct {
+		URI syntax.ATURI `json:"uri"`
+	}
+
 	type gen struct {
 		DID string `json:"did"`
-		Feeds []syntax.ATURI `json:"feeds"`
+		Feeds []feed `json:"feeds"`
 	}
 
 	out := gen{
@@ -65,7 +69,7 @@ func describeFeedGenerator(c echo.Context) error {
 		if err != nil {
 			continue
 		}
-		out.Feeds = append(out.Feeds, aturi)
+		out.Feeds = append(out.Feeds, feed{URI: aturi})
 	}
 
 	return c.JSON(http.StatusOK, out)
