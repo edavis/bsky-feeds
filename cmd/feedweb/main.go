@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
+	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/edavis/bsky-feeds/pkg/feeds"
 	"github.com/edavis/bsky-feeds/pkg/mostliked"
 	"github.com/labstack/echo/v4"
@@ -24,14 +25,14 @@ func parseLangs(userPrefs string) []language.Tag {
 	return t
 }
 
+var generators = FeedLookup{
+	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked": mostliked.Feed,
+}
+
 func getFeedSkeleton(c echo.Context) error {
 	var req SkeletonRequest
 	if err := c.Bind(&req); err != nil {
 		return c.String(http.StatusBadRequest, "bad request")
-	}
-
-	generators := FeedLookup{
-		"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked": mostliked.Feed,
 	}
 
 	params := feeds.FeedgenParams{
@@ -48,11 +49,33 @@ func getFeedSkeleton(c echo.Context) error {
 	return c.JSON(http.StatusOK, feed)
 }
 
+func describeFeedGenerator(c echo.Context) error {
+	type gen struct {
+		DID string `json:"did"`
+		Feeds []syntax.ATURI `json:"feeds"`
+	}
+
+	out := gen{
+		DID: `https://` + NgrokHostname,
+	}
+
+	for feedUri, _ := range generators {
+		aturi, err := syntax.ParseATURI(feedUri)
+		if err != nil {
+			continue
+		}
+		out.Feeds = append(out.Feeds, aturi)
+	}
+
+	return c.JSON(http.StatusOK, out)
+}
+
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.GET("/.well-known/did.json", didDoc)
 	e.GET("/xrpc/app.bsky.feed.getFeedSkeleton", getFeedSkeleton)
+	e.GET("/xrpc/app.bsky.feed.describeFeedGenerator", describeFeedGenerator)
 	e.Logger.Fatal(e.Start(":5000"))
 }
