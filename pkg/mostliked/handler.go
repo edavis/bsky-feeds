@@ -52,7 +52,7 @@ func findDetectableText(post appbsky.FeedPost) string {
 
 	if post.Text != "" {
 		return post.Text
-	} else if post.Embed.EmbedImages != nil {
+	} else if post.Embed != nil && post.Embed.EmbedImages != nil && post.Embed.EmbedImages.Images != nil {
 		for _, image := range post.Embed.EmbedImages.Images {
 			if image.Alt != "" {
 				return image.Alt
