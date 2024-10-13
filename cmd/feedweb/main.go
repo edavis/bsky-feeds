@@ -52,6 +52,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.GET("/.well-known/did.json", didDoc)
 	e.GET("/xrpc/app.bsky.feed.getFeedSkeleton", getFeedSkeleton)
 	e.Logger.Fatal(e.Start(":5000"))
 }
