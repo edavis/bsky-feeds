@@ -14,7 +14,7 @@ import (
 type SkeletonRequest struct {
 	Feed   string `query:"feed"`
 	Limit  int64  `query:"limit"`
-	Offset string `query:"offset"`
+	Cursor string `query:"cursor"`
 }
 
 type FeedLookup map[string]func(feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output
@@ -37,7 +37,7 @@ func getFeedSkeleton(c echo.Context) error {
 	params := feeds.FeedgenParams{
 		Feed:   req.Feed,
 		Limit:  req.Limit,
-		Offset: req.Offset,
+		Cursor: req.Cursor,
 		Langs:  parseLangs(c.Request().Header.Get("Accept-Language")),
 	}
 	feedFunc, ok := generators[req.Feed]

@@ -7,6 +7,6 @@ import (
 type FeedgenParams struct {
 	Feed   string
 	Limit  int64
-	Offset string
+	Cursor string
 	Langs  []language.Tag
 }
