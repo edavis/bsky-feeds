@@ -59,7 +59,7 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	ctx := context.Background()
 	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&mode=ro")
 	if err != nil {
-		log.Fatal("error opening db")
+		log.Printf("error opening db: %v\n", err)
 	}
 	defer dbCnx.Close()
 

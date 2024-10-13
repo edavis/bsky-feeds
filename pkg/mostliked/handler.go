@@ -62,11 +62,9 @@ func findDetectableText(post appbsky.FeedPost) string {
 	return ""
 }
 
-func Handler(events <-chan []byte, dbCnx *sql.DB) {
-	ctx := context.Background()
-
+func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 	if _, err := dbCnx.ExecContext(ctx, ddl); err != nil {
-		log.Fatal("couldn't create tables")
+		log.Printf("couldn't create tables: %v\n", err)
 	}
 	queries := db.New(dbCnx)
 
@@ -100,7 +98,7 @@ func Handler(events <-chan []byte, dbCnx *sql.DB) {
 		if !txOpen {
 			dbTx, err = dbCnx.BeginTx(ctx, nil)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("failed to begin transaction: %v\n", err)
 			}
 			txOpen = true
 			queriesTx = queries.WithTx(dbTx)
@@ -158,7 +156,7 @@ func Handler(events <-chan []byte, dbCnx *sql.DB) {
 				continue
 			}
 			drafts.Delete(like.Subject.Uri)
-			log.Println("storing", like.Subject.Uri, "in database")
+			// log.Println("storing", like.Subject.Uri, "in database")
 			err := queriesTx.InsertPost(ctx, db.InsertPostParams{
 				Uri:      like.Subject.Uri,
 				CreateTs: draftPost.Created,
@@ -184,13 +182,13 @@ func Handler(events <-chan []byte, dbCnx *sql.DB) {
 		}
 
 		eventCount += 1
-		if eventCount % 500 == 0 {
+		if eventCount % 1000 == 0 {
 			if err := dbTx.Commit(); err != nil {
-				log.Fatalf("commit failed: %v\n", err)
+				log.Printf("commit failed: %v\n", err)
 			} else {
 				txOpen = false
 			}
-			log.Println("db committed")
+			// log.Println("db committed")
 		}
 	}
 }
