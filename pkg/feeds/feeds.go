@@ -1,8 +1,12 @@
 package feeds
 
+import (
+	"golang.org/x/text/language"
+)
+
 type FeedgenParams struct {
 	Feed   string
 	Limit  int64
 	Offset string
-	Langs  []string
+	Langs  []language.Tag
 }

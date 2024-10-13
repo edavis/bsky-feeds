@@ -1,6 +1,7 @@
 package main
 
 import (
+	"golang.org/x/text/language"
 	"net/http"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
@@ -16,30 +17,28 @@ type SkeletonRequest struct {
 	Offset string `query:"offset"`
 }
 
-type SkeletonHeader struct {
-	Langs []string `header:"Accept-Language"`
-}
-
 type FeedLookup map[string]func(feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output
+
+func parseLangs(userPrefs string) []language.Tag {
+	t, _, _ := language.ParseAcceptLanguage(userPrefs)
+	return t
+}
 
 func getFeedSkeleton(c echo.Context) error {
 	var req SkeletonRequest
 	if err := c.Bind(&req); err != nil {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
-	var hdr SkeletonHeader
-	if err := (&echo.DefaultBinder{}).BindHeaders(c, &hdr); err != nil {
-		return c.String(http.StatusBadRequest, "bad request")
-	}
 
 	generators := FeedLookup{
 		"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked": mostliked.Feed,
 	}
+
 	params := feeds.FeedgenParams{
 		Feed:   req.Feed,
 		Limit:  req.Limit,
 		Offset: req.Offset,
-		Langs:  hdr.Langs,
+		Langs:  parseLangs(c.Request().Header.Get("Accept-Language")),
 	}
 	feedFunc, ok := generators[req.Feed]
 	if !ok {

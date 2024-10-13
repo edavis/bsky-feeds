@@ -48,6 +48,7 @@ func trimPostsTable(ctx context.Context, queries *db.Queries) {
 func findDetectableText(post appbsky.FeedPost) string {
 	// if we have text, detect against that
 	// no text but we do have images, detect against first alt text
+	// log.Printf("%+v\n", post)
 
 	if post.Text != "" {
 		return post.Text
