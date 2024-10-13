@@ -38,7 +38,7 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([
 		fmt.Fprint(&query, " AND likes <= ? ")
 		queryParams = append(queryParams, params.Cursor)
 	}
-	fmt.Fprint(&query, "ORDER BY likes DESC, create_ts DESC")
+	fmt.Fprint(&query, "ORDER BY likes DESC, create_ts DESC ")
 	fmt.Fprint(&query, "LIMIT ?")
 	queryParams = append(queryParams, params.Limit+1)
 
