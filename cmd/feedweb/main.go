@@ -27,6 +27,7 @@ func parseLangs(userPrefs string) []language.Tag {
 
 var generators = FeedLookup{
 	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked": mostliked.Feed,
+	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked-dev": mostliked.Feed,
 }
 
 func getFeedSkeleton(c echo.Context) error {
