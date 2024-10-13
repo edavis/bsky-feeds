@@ -7,7 +7,6 @@ package mostliked
 
 import (
 	"context"
-	"database/sql"
 )
 
 const insertLang = `-- name: InsertLang :exec
@@ -55,52 +54,4 @@ update posts set likes = likes + 1 where uri = ?
 func (q *Queries) UpdateLikes(ctx context.Context, uri string) error {
 	_, err := q.db.ExecContext(ctx, updateLikes, uri)
 	return err
-}
-
-const viewFeed = `-- name: ViewFeed :many
-select posts.uri, create_ts, likes, lang
-from posts
-left join langs on posts.uri = langs.uri
-order by likes desc
-limit ? offset ?
-`
-
-type ViewFeedParams struct {
-	Limit  int64
-	Offset int64
-}
-
-type ViewFeedRow struct {
-	Uri      string
-	CreateTs int64
-	Likes    int64
-	Lang     sql.NullString
-}
-
-func (q *Queries) ViewFeed(ctx context.Context, arg ViewFeedParams) ([]ViewFeedRow, error) {
-	rows, err := q.db.QueryContext(ctx, viewFeed, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ViewFeedRow
-	for rows.Next() {
-		var i ViewFeedRow
-		if err := rows.Scan(
-			&i.Uri,
-			&i.CreateTs,
-			&i.Likes,
-			&i.Lang,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
