@@ -43,15 +43,11 @@ func getFeedSkeleton(c echo.Context) error {
 			limit = l
 		}
 	}
-	var cursor string = "0"
-	if req.Cursor != "" {
-		cursor = req.Cursor
-	}
 
 	params := feeds.FeedgenParams{
 		Feed:   req.Feed,
 		Limit:  limit,
-		Cursor: cursor,
+		Cursor: req.Cursor,
 		Langs:  parseLangs(c.Request().Header.Get("Accept-Language")),
 	}
 

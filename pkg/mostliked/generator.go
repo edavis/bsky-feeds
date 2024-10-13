@@ -18,26 +18,25 @@ type PostRow struct {
 	Likes int
 }
 
-func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([]PostRow, error) {
+func getPosts(ctx context.Context, dbCnx *sql.DB, langs []string, limit, offset int) ([]PostRow, error) {
 	var queryParams []any
 	var query strings.Builder
 	fmt.Fprint(&query, "SELECT posts.uri, likes FROM posts LEFT JOIN langs ON posts.uri = langs.uri")
-	fmt.Fprint(&query, " WHERE 1=1 ")
-	if len(params.Langs) > 0 {
-		fmt.Fprint(&query, " AND ( ")
-		for idx, lang := range params.Langs {
+	if len(langs) > 0 {
+		fmt.Fprint(&query, " WHERE lang IN (")
+		for idx, lang := range langs {
 			if idx > 0 {
-				fmt.Fprint(&query, " OR ")
+				fmt.Fprint(&query, ",")
 			}
-			fmt.Fprint(&query, " lang = ? ")
-			queryParams = append(queryParams, lang.String())
+			fmt.Fprint(&query, "?")
+			queryParams = append(queryParams, lang)
 		}
-		fmt.Fprint(&query, " ) ")
+		fmt.Fprint(&query, ")")
 	}
-	fmt.Fprint(&query, "ORDER BY likes DESC, create_ts DESC ")
-	fmt.Fprint(&query, "LIMIT ? OFFSET ?")
-	queryParams = append(queryParams, params.Limit, params.Cursor)
-	fmt.Println(query.String(), queryParams)
+	fmt.Fprint(&query, " ORDER BY likes DESC, create_ts DESC LIMIT ? OFFSET ?")
+	queryParams = append(queryParams, limit, offset)
+
+	fmt.Printf("query: %v %+v\n", query.String(), queryParams)
 
 	rows, err := dbCnx.QueryContext(ctx, query.String(), queryParams...)
 	if err != nil {
@@ -65,7 +64,19 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	}
 	defer dbCnx.Close()
 
-	rows, err := getPosts(ctx, dbCnx, params)
+	var langs []string
+	for _, lang := range params.Langs {
+		langs = append(langs, lang.String())
+	}
+
+	offset := 0
+	if parsed, err := strconv.Atoi(params.Cursor); err == nil {
+		offset = parsed
+	} else {
+		log.Println("error converting cursor")
+	}
+
+	rows, err := getPosts(ctx, dbCnx, langs, params.Limit, offset)
 	if err != nil {
 		log.Println("error fetching rows:", err)
 	}
@@ -81,11 +92,6 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 		Feed: posts,
 	}
 
-	var offset int = 0
-	offset, err = strconv.Atoi(params.Cursor)
-	if err != nil {
-		log.Println("error converting cursor")
-	}
 	offset += len(posts)
 	cursor = strconv.Itoa(offset)
 
