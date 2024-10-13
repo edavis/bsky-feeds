@@ -68,12 +68,6 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([
 		}
 		posts = append(posts, post)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
 
 	return posts, nil
 }
