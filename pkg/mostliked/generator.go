@@ -37,7 +37,7 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([
 	fmt.Fprint(&query, "LIMIT ?")
 	queryParams = append(queryParams, params.Limit)
 
-	rows, err := dbCnx.QueryContext(ctx, q.String(), queryParams...)
+	rows, err := dbCnx.QueryContext(ctx, query.String(), queryParams...)
 	if err != nil {
 		return nil, err
 	}
