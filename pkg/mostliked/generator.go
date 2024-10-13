@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"log"
 	"strconv"
+	"strings"
+	"fmt"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/edavis/bsky-feeds/pkg/feeds"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/sanggonlee/gosq"
 )
 
 type PostRow struct {
@@ -18,43 +19,25 @@ type PostRow struct {
 }
 
 func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([]PostRow, error) {
-	q, err := gosq.Execute(`
-	SELECT posts.uri, likes
-	FROM posts LEFT JOIN langs ON posts.uri = langs.uri
-	WHERE 1=1
-	{{if .Langs}}
-		AND (
-			{{- range $index, $lang := .Langs }}
-			{{- if $index }} OR {{ end }} lang = ?
-			{{- end }}
-		)
-	{{end}}
-	{{if .Offset}}
-	AND likes < ?
-	{{end}}
-	ORDER BY likes DESC, create_ts DESC
-	LIMIT ?
-	`, params)
-	if err != nil {
-		log.Println("error in sql template:", err)
-	}
-
-	log.Println(q)
-
 	var queryParams []any
-	for _, lang := range params.Langs {
-		queryParams = append(queryParams, lang.String())
+	var query strings.Builder
+	fmt.Fprint(&query, "SELECT posts.uri, likes FROM posts LEFT JOIN langs ON posts.uri = langs.uri")
+	if len(params.Langs) > 0 {
+		fmt.Fprint(&query, " WHERE ")
+		for idx, lang := range params.Langs {
+			if idx > 0 {
+				fmt.Fprint(&query, " OR ")
+			}
+			fmt.Fprint(&query, " lang = ? ")
+			queryParams = append(queryParams, lang.String())
+		}
 	}
-
-	if params.Offset != "" {
-		queryParams = append(queryParams, params.Offset)
-	}
-
+	// TODO cursor/offset stuff
+	fmt.Fprint(&query, "ORDER BY likes DESC, create_ts DESC")
+	fmt.Fprint(&query, "LIMIT ?")
 	queryParams = append(queryParams, params.Limit)
 
-	log.Println(queryParams)
-
-	rows, err := dbCnx.QueryContext(ctx, q, queryParams...)
+	rows, err := dbCnx.QueryContext(ctx, q.String(), queryParams...)
 	if err != nil {
 		return nil, err
 	}
