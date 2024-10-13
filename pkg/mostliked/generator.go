@@ -80,7 +80,7 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 		Feed: posts,
 	}
 
-	if len(rows) == int(params.Limit) {
+	if len(rows) == params.Limit {
 		skeleton.Cursor = &cursor
 	}
 

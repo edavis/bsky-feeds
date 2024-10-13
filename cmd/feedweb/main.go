@@ -13,7 +13,7 @@ import (
 
 type SkeletonRequest struct {
 	Feed   string `query:"feed"`
-	Limit  int64  `query:"limit"`
+	Limit  int  `query:"limit"`
 	Cursor string `query:"cursor"`
 }
 
