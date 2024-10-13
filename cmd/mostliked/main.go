@@ -1,19 +1,19 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"context"
 
 	"github.com/edavis/bsky-feeds/pkg/mostliked"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-//const JetstreamUrl = `wss://jetstream1.us-west.bsky.network/subscribe?wantedCollections=app.bsky.feed.post&wantedCollections=app.bsky.feed.like&cursor=1728846514000000`
+// const JetstreamUrl = `wss://jetstream1.us-west.bsky.network/subscribe?wantedCollections=app.bsky.feed.post&wantedCollections=app.bsky.feed.like&cursor=1728846514000000`
 const JetstreamUrl = `ws://localhost:6008/subscribe?wantedCollections=app.bsky.feed.post&wantedCollections=app.bsky.feed.like`
 
 func main() {

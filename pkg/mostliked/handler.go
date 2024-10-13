@@ -87,10 +87,10 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 	go trimPostsTable(ctx, queries)
 
 	var (
-		dbTx *sql.Tx
-		queriesTx *db.Queries
-		txOpen bool
-		err error
+		dbTx       *sql.Tx
+		queriesTx  *db.Queries
+		txOpen     bool
+		err        error
 		eventCount int
 	)
 
@@ -182,7 +182,7 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 		}
 
 		eventCount += 1
-		if eventCount % 1000 == 0 {
+		if eventCount%1000 == 0 {
 			if err := dbTx.Commit(); err != nil {
 				log.Printf("commit failed: %v\n", err)
 			} else {

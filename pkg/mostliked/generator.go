@@ -3,10 +3,10 @@ package mostliked
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
-	"fmt"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/edavis/bsky-feeds/pkg/feeds"
@@ -14,7 +14,7 @@ import (
 )
 
 type PostRow struct {
-	Uri   string
+	Uri string
 }
 
 func getPosts(ctx context.Context, dbCnx *sql.DB, langs []string, limit, offset int) ([]PostRow, error) {

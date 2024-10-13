@@ -15,7 +15,7 @@ import (
 
 type SkeletonRequest struct {
 	Feed   string `query:"feed"`
-	Limit  string  `query:"limit"`
+	Limit  string `query:"limit"`
 	Cursor string `query:"cursor"`
 }
 
@@ -27,7 +27,7 @@ func parseLangs(userPrefs string) []language.Tag {
 }
 
 var generators = FeedLookup{
-	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked": mostliked.Feed,
+	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked":     mostliked.Feed,
 	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked-dev": mostliked.Feed,
 }
 
@@ -65,7 +65,7 @@ func describeFeedGenerator(c echo.Context) error {
 	}
 
 	type gen struct {
-		DID string `json:"did"`
+		DID   string `json:"did"`
 		Feeds []feed `json:"feeds"`
 	}
 
