@@ -15,13 +15,12 @@ import (
 
 type PostRow struct {
 	Uri   string
-	Likes int
 }
 
 func getPosts(ctx context.Context, dbCnx *sql.DB, langs []string, limit, offset int) ([]PostRow, error) {
 	var queryParams []any
 	var query strings.Builder
-	fmt.Fprint(&query, "SELECT posts.uri, likes FROM posts LEFT JOIN langs ON posts.uri = langs.uri")
+	fmt.Fprint(&query, "SELECT posts.uri FROM posts LEFT JOIN langs ON posts.uri = langs.uri")
 	if len(langs) > 0 {
 		fmt.Fprint(&query, " WHERE lang IN (")
 		for idx, lang := range langs {
@@ -47,7 +46,7 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, langs []string, limit, offset 
 	var posts []PostRow
 	for rows.Next() {
 		var post PostRow
-		if err := rows.Scan(&post.Uri, &post.Likes); err != nil {
+		if err := rows.Scan(&post.Uri); err != nil {
 			return nil, err
 		}
 		posts = append(posts, post)
