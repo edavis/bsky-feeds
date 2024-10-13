@@ -9,26 +9,26 @@ import (
 const NgrokHostname = "routinely-right-barnacle.ngrok-free.app"
 
 type DidDocument struct {
-	context []string `json:"@context"`
-	id string `json:"id"`
-	services []DidService `json:"service"`
+	Context []string `json:"@context"`
+	ID string `json:"id"`
+	Services []DidService `json:"service"`
 }
 
 type DidService struct {
-	id string `json:"id"`
-	serviceType string `json:"type"`
-	serviceEndpoint string `json:"serviceEndpoint"`
+	ID string `json:"id"`
+	ServiceType string `json:"type"`
+	ServiceEndpoint string `json:"serviceEndpoint"`
 }
 
 func didDoc(c echo.Context) error {
 	doc := DidDocument{
-		context: []string{"https://www.w3.org/ns/did/v1"},
-		id: `did:web:` + NgrokHostname,
-		services: []DidService{
+		Context: []string{"https://www.w3.org/ns/did/v1"},
+		ID: `did:web:` + NgrokHostname,
+		Services: []DidService{
 			DidService{
-				id: "#bsky_fg",
-				serviceType: "BskyFeedGenerator",
-				serviceEndpoint: `https://` + NgrokHostname,
+				ID: "#bsky_fg",
+				ServiceType: "BskyFeedGenerator",
+				ServiceEndpoint: `https://` + NgrokHostname,
 			},
 		},
 	}
