@@ -22,8 +22,9 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([
 	var queryParams []any
 	var query strings.Builder
 	fmt.Fprint(&query, "SELECT posts.uri, likes FROM posts LEFT JOIN langs ON posts.uri = langs.uri")
+	fmt.Fprint(&query, " WHERE 1=1 ")
 	if len(params.Langs) > 0 {
-		fmt.Fprint(&query, " WHERE ")
+		fmt.Fprint(&query, " AND ( ")
 		for idx, lang := range params.Langs {
 			if idx > 0 {
 				fmt.Fprint(&query, " OR ")
@@ -31,11 +32,15 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([
 			fmt.Fprint(&query, " lang = ? ")
 			queryParams = append(queryParams, lang.String())
 		}
+		fmt.Fprint(&query, " ) ")
 	}
-	// TODO cursor/offset stuff
+	if params.Cursor != "" {
+		fmt.Fprint(&query, " AND likes <= ? ")
+		queryParams = append(queryParams, params.Cursor)
+	}
 	fmt.Fprint(&query, "ORDER BY likes DESC, create_ts DESC")
 	fmt.Fprint(&query, "LIMIT ?")
-	queryParams = append(queryParams, params.Limit)
+	queryParams = append(queryParams, params.Limit+1)
 
 	rows, err := dbCnx.QueryContext(ctx, query.String(), queryParams...)
 	if err != nil {
@@ -71,8 +76,10 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	var cursor string
 	posts := make([]*appbsky.FeedDefs_SkeletonFeedPost, 0, params.Limit)
 
-	for _, row := range rows {
-		posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: row.Uri})
+	for idx, row := range rows {
+		if idx+1 <= params.Limit {
+			posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: row.Uri})
+		}
 		cursor = strconv.Itoa(row.Likes)
 	}
 
