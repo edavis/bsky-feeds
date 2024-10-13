@@ -43,13 +43,18 @@ func getFeedSkeleton(c echo.Context) error {
 			limit = l
 		}
 	}
+	var cursor string = "0"
+	if req.Cursor != "" {
+		cursor = req.Cursor
+	}
 
 	params := feeds.FeedgenParams{
 		Feed:   req.Feed,
 		Limit:  limit,
-		Cursor: req.Cursor,
+		Cursor: cursor,
 		Langs:  parseLangs(c.Request().Header.Get("Accept-Language")),
 	}
+
 	feedFunc, ok := generators[req.Feed]
 	if !ok {
 		return c.String(http.StatusNotFound, "feed not found")

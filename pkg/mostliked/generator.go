@@ -34,13 +34,10 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, params feeds.FeedgenParams) ([
 		}
 		fmt.Fprint(&query, " ) ")
 	}
-	if params.Cursor != "" {
-		fmt.Fprint(&query, " AND likes <= ? ")
-		queryParams = append(queryParams, params.Cursor)
-	}
 	fmt.Fprint(&query, "ORDER BY likes DESC, create_ts DESC ")
-	fmt.Fprint(&query, "LIMIT ?")
-	queryParams = append(queryParams, params.Limit+1)
+	fmt.Fprint(&query, "LIMIT ? OFFSET ?")
+	queryParams = append(queryParams, params.Limit, params.Cursor)
+	fmt.Println(query.String(), queryParams)
 
 	rows, err := dbCnx.QueryContext(ctx, query.String(), queryParams...)
 	if err != nil {
@@ -76,18 +73,23 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	var cursor string
 	posts := make([]*appbsky.FeedDefs_SkeletonFeedPost, 0, params.Limit)
 
-	for idx, row := range rows {
-		if idx+1 <= params.Limit {
-			posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: row.Uri})
-		}
-		cursor = strconv.Itoa(row.Likes)
+	for _, row := range rows {
+		posts = append(posts, &appbsky.FeedDefs_SkeletonFeedPost{Post: row.Uri})
 	}
 
 	skeleton := appbsky.FeedGetFeedSkeleton_Output{
 		Feed: posts,
 	}
 
-	if len(rows) == params.Limit {
+	var offset int = 0
+	offset, err = strconv.Atoi(params.Cursor)
+	if err != nil {
+		log.Println("error converting cursor")
+	}
+	offset += len(posts)
+	cursor = strconv.Itoa(offset)
+
+	if len(posts) == params.Limit {
 		skeleton.Cursor = &cursor
 	}
 
