@@ -3,6 +3,7 @@ package main
 import (
 	"golang.org/x/text/language"
 	"net/http"
+	"strconv"
 
 	appbsky "github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/atproto/syntax"
@@ -14,7 +15,7 @@ import (
 
 type SkeletonRequest struct {
 	Feed   string `query:"feed"`
-	Limit  int  `query:"limit"`
+	Limit  string  `query:"limit"`
 	Cursor string `query:"cursor"`
 }
 
@@ -36,9 +37,16 @@ func getFeedSkeleton(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
+	var limit int = 30
+	if req.Limit != "" {
+		if l, err := strconv.Atoi(req.Limit); err == nil {
+			limit = l
+		}
+	}
+
 	params := feeds.FeedgenParams{
 		Feed:   req.Feed,
-		Limit:  req.Limit,
+		Limit:  limit,
 		Cursor: req.Cursor,
 		Langs:  parseLangs(c.Request().Header.Get("Accept-Language")),
 	}
