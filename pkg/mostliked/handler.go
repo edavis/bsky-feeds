@@ -43,9 +43,9 @@ func trimPostsTable(ctx context.Context, queries *db.Queries) {
 	for {
 		select {
 		case <-ticker.C:
-			log.Println("starting to trim old posts")
+			log.Printf("clearing expired posts\n")
 			if err := queries.TrimPosts(ctx); err != nil {
-				log.Printf("error trimming posts: %v\n", err)
+				log.Printf("error clearing expired posts: %v\n", err)
 			}
 		}
 	}
@@ -116,7 +116,7 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 		var like appbsky.FeedLike
 		var event jetstream.Event
 		if err := json.Unmarshal(evt, &event); err != nil {
-			log.Println("error parsing jetstream event")
+			log.Printf("error parsing jetstream event: %v\n", err)
 			continue
 		}
 		if event.Commit == nil {
@@ -130,7 +130,7 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 			var post appbsky.FeedPost
 			postUri := fmt.Sprintf("at://%s/%s/%s", event.Did, commit.Collection, commit.RKey)
 			if err := json.Unmarshal(commit.Record, &post); err != nil {
-				log.Println("error parsing appbsky.FeedPost")
+				log.Printf("error parsing appbsky.FeedPost: %v\n", err)
 				continue
 			}
 			draftPost := DraftPost{
@@ -151,7 +151,7 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 			continue
 		} else if commit.Collection == "app.bsky.feed.like" {
 			if err := json.Unmarshal(commit.Record, &like); err != nil {
-				log.Println("error parsing appbsky.FeedLike")
+				log.Printf("error parsing appbsky.FeedLike: %v\n", err)
 				continue
 			}
 		}
@@ -165,7 +165,6 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 				continue
 			}
 			drafts.Delete(like.Subject.Uri)
-			// log.Println("storing", like.Subject.Uri, "in database")
 			err := queriesTx.InsertPost(ctx, db.InsertPostParams{
 				Uri:      like.Subject.Uri,
 				CreateTs: draftPost.Created,

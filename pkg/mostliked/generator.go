@@ -72,12 +72,12 @@ func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	if parsed, err := strconv.Atoi(params.Cursor); err == nil {
 		offset = parsed
 	} else {
-		log.Println("error converting cursor")
+		log.Printf("error converting cursor: %v\n", err)
 	}
 
 	rows, err := getPosts(ctx, dbCnx, langs, params.Limit, offset)
 	if err != nil {
-		log.Println("error fetching rows:", err)
+		log.Printf("error fetching rows: %v\n", err)
 	}
 
 	var cursor string

@@ -28,7 +28,7 @@ func main() {
 		if err := conn.Close(); err != nil {
 			log.Printf("failed to close websocket: %v\n", err)
 		}
-		log.Println("websocket closed")
+		log.Printf("websocket closed\n")
 	}()
 
 	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&_timeout=5000")
@@ -42,13 +42,13 @@ func main() {
 		if err := dbCnx.Close(); err != nil {
 			log.Printf("failed to close db: %v\n", err)
 		}
-		log.Println("db closed")
+		log.Printf("db closed\n")
 	}()
 
 	jetstreamEvents := make(chan []byte)
 	go mostliked.Handler(ctx, jetstreamEvents, dbCnx)
 
-	log.Println("starting up")
+	log.Printf("starting up\n")
 	go func() {
 		for {
 			_, message, err := conn.ReadMessage()
@@ -60,5 +60,5 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	log.Println("shutting down")
+	log.Printf("shutting down\n")
 }
