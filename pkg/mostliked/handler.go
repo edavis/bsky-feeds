@@ -36,21 +36,6 @@ type CheckpointResults struct {
 	Transferred int
 }
 
-func trimPostsTable(ctx context.Context, queries *db.Queries) {
-	ticker := time.NewTicker(1 * time.Minute)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			log.Printf("clearing expired posts\n")
-			if err := queries.TrimPosts(ctx); err != nil {
-				log.Printf("error clearing expired posts: %v\n", err)
-			}
-		}
-	}
-}
-
 func findDetectableText(post appbsky.FeedPost) string {
 	// if we have text, detect against that
 	// no text but we do have images, detect against first alt text
@@ -92,8 +77,6 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 		FromLanguages(languages...).
 		WithPreloadedLanguageModels().
 		Build()
-
-	go trimPostsTable(ctx, queries)
 
 	var (
 		dbTx       *sql.Tx
@@ -191,6 +174,10 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 
 		eventCount += 1
 		if eventCount%1000 == 0 {
+			if err := queriesTx.TrimPosts(ctx); err != nil {
+				log.Printf("error clearing expired posts: %v\n", err)
+			}
+
 			if err := dbTx.Commit(); err != nil {
 				log.Printf("commit failed: %v\n", err)
 			}
