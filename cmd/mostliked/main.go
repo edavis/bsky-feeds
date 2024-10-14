@@ -36,8 +36,11 @@ func main() {
 		log.Fatalf("failed to open database: %v\n", err)
 	}
 	defer func() {
+		if _, err := dbCnx.Exec("PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
+			log.Printf("error doing final WAL checkpoint: %v\n", err)
+		}
 		if err := dbCnx.Close(); err != nil {
-			log.Printf("failed to close db: %v", err)
+			log.Printf("failed to close db: %v\n", err)
 		}
 		log.Println("db closed")
 	}()

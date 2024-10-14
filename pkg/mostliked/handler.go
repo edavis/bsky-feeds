@@ -30,6 +30,12 @@ type DraftPost struct {
 	Likes     int64
 }
 
+type CheckpointResults struct {
+	Blocked int
+	Pages int
+	Transferred int
+}
+
 func trimPostsTable(ctx context.Context, queries *db.Queries) {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -64,7 +70,10 @@ func findDetectableText(post appbsky.FeedPost) string {
 
 func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 	if _, err := dbCnx.ExecContext(ctx, ddl); err != nil {
-		log.Printf("couldn't create tables: %v\n", err)
+		log.Printf("could not create tables: %v\n", err)
+	}
+	if _, err := dbCnx.ExecContext(ctx, "PRAGMA wal_autocheckpoint = 0"); err != nil {
+		log.Printf("could not set PRAGMA wal_autocheckpoint: %v\n", err)
 	}
 	queries := db.New(dbCnx)
 
@@ -163,7 +172,7 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 				Likes:    draftPost.Likes,
 			})
 			if err != nil {
-				log.Println("error inserting post")
+				log.Printf("error inserting post: %v\n", err)
 			}
 			for _, lang := range draftPost.Languages {
 				err = queriesTx.InsertLang(ctx, db.InsertLangParams{
@@ -171,13 +180,13 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 					Lang: strings.ToLower(lang.IsoCode639_1().String()),
 				})
 				if err != nil {
-					log.Println("error inserting lang")
+					log.Printf("error inserting lang: %v\n", err)
 				}
 			}
 		} else {
 			err := queriesTx.UpdateLikes(ctx, like.Subject.Uri)
 			if err != nil {
-				log.Println("error updating likes")
+				log.Printf("error updating likes: %v\n", err)
 			}
 		}
 
@@ -185,10 +194,18 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 		if eventCount%1000 == 0 {
 			if err := dbTx.Commit(); err != nil {
 				log.Printf("commit failed: %v\n", err)
-			} else {
-				txOpen = false
 			}
-			// log.Println("db committed")
+
+			var results CheckpointResults
+			err := dbCnx.QueryRowContext(ctx, "PRAGMA wal_checkpoint(RESTART)").Scan(&results.Blocked, &results.Pages, &results.Transferred)
+			switch {
+			case err != nil:
+				log.Printf("failed checkpoint: %v\n", err)
+			default:
+				log.Printf("checkpoint: %+v\n", results)
+			}
+
+			txOpen = false
 		}
 	}
 }

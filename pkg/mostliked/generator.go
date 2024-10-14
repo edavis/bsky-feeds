@@ -57,7 +57,7 @@ func getPosts(ctx context.Context, dbCnx *sql.DB, langs []string, limit, offset 
 
 func Feed(params feeds.FeedgenParams) appbsky.FeedGetFeedSkeleton_Output {
 	ctx := context.Background()
-	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&mode=ro")
+	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on")
 	if err != nil {
 		log.Printf("error opening db: %v\n", err)
 	}
