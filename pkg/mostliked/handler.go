@@ -43,9 +43,9 @@ func trimPostsTable(ctx context.Context, queries *db.Queries) {
 	for {
 		select {
 		case <-ticker.C:
-			log.Println("trimming posts")
+			log.Println("starting to trim old posts")
 			if err := queries.TrimPosts(ctx); err != nil {
-				log.Println("error trimming posts")
+				log.Printf("error trimming posts: %v\n", err)
 			}
 		}
 	}
@@ -201,8 +201,12 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 			switch {
 			case err != nil:
 				log.Printf("failed checkpoint: %v\n", err)
-			default:
-				log.Printf("checkpoint: %+v\n", results)
+			case results.Blocked == 1:
+				log.Printf("checkpoint: blocked\n")
+			case results.Pages == results.Transferred:
+				log.Printf("checkpoint: %d pages transferred\n", results.Transferred)
+			case results.Pages != results.Transferred:
+				log.Printf("checkpoint: %d pages, %d transferred\n", results.Pages, results.Transferred)
 			}
 
 			txOpen = false
