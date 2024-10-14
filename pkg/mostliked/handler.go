@@ -31,8 +31,8 @@ type DraftPost struct {
 }
 
 type CheckpointResults struct {
-	Blocked int
-	Pages int
+	Blocked     int
+	Pages       int
 	Transferred int
 }
 
