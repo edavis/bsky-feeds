@@ -31,7 +31,7 @@ func main() {
 		log.Printf("websocket closed\n")
 	}()
 
-	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&_timeout=5000")
+	dbCnx, err := sql.Open("sqlite3", "data/mostliked.db?_journal=WAL&_fk=on&_timeout=5000&_sync=1&_txlock=immediate")
 	if err != nil {
 		log.Fatalf("failed to open database: %v\n", err)
 	}
