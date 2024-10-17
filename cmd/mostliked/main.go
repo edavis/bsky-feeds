@@ -53,7 +53,7 @@ func main() {
 		for {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
-				break
+				stop()
 			}
 			jetstreamEvents <- message
 		}
