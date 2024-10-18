@@ -8,7 +8,7 @@ User=eric
 WorkingDirectory=/home/eric/bsky-feeds
 ExecStart=/home/eric/bsky-feeds/bin/mostliked
 TimeoutSec=15
-Restart=on-failure
+Restart=always
 RestartSec=30
 StandardOutput=journal
 
