@@ -99,7 +99,6 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 		var like appbsky.FeedLike
 		var event jetstream.Event
 		if err := json.Unmarshal(evt, &event); err != nil {
-			log.Printf("error parsing jetstream event: %v\n", err)
 			continue
 		}
 		if event.Commit == nil {
