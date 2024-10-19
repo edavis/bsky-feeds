@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"golang.org/x/text/language"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -9,8 +11,10 @@ import (
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/edavis/bsky-feeds/pkg/feeds"
 	"github.com/edavis/bsky-feeds/pkg/mostliked"
+	"github.com/edavis/bsky-feeds/pkg/popular"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	sqlite "github.com/mattn/go-sqlite3"
 )
 
 type SkeletonRequest struct {
@@ -29,6 +33,9 @@ func parseLangs(userPrefs string) []language.Tag {
 var generators = FeedLookup{
 	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked":     mostliked.Feed,
 	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/most-liked-dev": mostliked.Feed,
+
+	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/popular":     popular.Feed,
+	"at://did:plc:4nsduwlpivpuur4mqkbfvm6a/app.bsky.feed.generator/popular-dev": popular.Feed,
 }
 
 func getFeedSkeleton(c echo.Context) error {
@@ -85,6 +92,15 @@ func describeFeedGenerator(c echo.Context) error {
 }
 
 func main() {
+	sql.Register("sqlite3_custom", &sqlite.SQLiteDriver{
+		ConnectHook: func(conn *sqlite.SQLiteConn) error {
+			if err := conn.RegisterFunc("exp", math.Exp, true); err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
