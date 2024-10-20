@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/bluesky-social/indigo v0.0.0-20240905024844-a4f38639767f
-	github.com/bluesky-social/jetstream v0.0.0-20240925210745-2cd1b6147279
+	github.com/bluesky-social/jetstream v0.0.0-20241020000921-dcd43344c716
 	github.com/gorilla/websocket v1.5.3
 	github.com/karlseguin/ccache/v3 v3.0.5
 	github.com/labstack/echo/v4 v4.11.3

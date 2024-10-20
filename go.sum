@@ -4,6 +4,8 @@ github.com/bluesky-social/indigo v0.0.0-20240905024844-a4f38639767f h1:Q9cfCAlYW
 github.com/bluesky-social/indigo v0.0.0-20240905024844-a4f38639767f/go.mod h1:Zx9nSWgd/FxMenkJW07VKnzspxpHBdPrPmS+Fspl2I0=
 github.com/bluesky-social/jetstream v0.0.0-20240925210745-2cd1b6147279 h1:45wwXL1io7pAcgqFMBHFi2GdF4CRg0/4Sq65JY3PfkM=
 github.com/bluesky-social/jetstream v0.0.0-20240925210745-2cd1b6147279/go.mod h1:/GMZrwKMbAiWU2MVCswH8+Jd3ybrpkHX4qM6tTfyv1k=
+github.com/bluesky-social/jetstream v0.0.0-20241020000921-dcd43344c716 h1:I8+VaZKaNIGCPGXE2/VXzJGlPFEZgiFLjnge+OWFl5w=
+github.com/bluesky-social/jetstream v0.0.0-20241020000921-dcd43344c716/go.mod h1:/dE2dmFell/m4zxgIbH3fkiqZ1obzr/ETj4RpgomgMs=
 github.com/carlmjohnson/versioninfo v0.22.5 h1:O00sjOLUAFxYQjlN/bzYTuZiS0y6fWDQjMRvwtKgwwc=
 github.com/carlmjohnson/versioninfo v0.22.5/go.mod h1:QT9mph3wcVfISUKd0i9sZfVrPviHuSF+cUtLjm2WSf8=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=

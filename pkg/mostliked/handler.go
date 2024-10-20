@@ -101,13 +101,13 @@ func Handler(ctx context.Context, events <-chan []byte, dbCnx *sql.DB) {
 		if err := json.Unmarshal(evt, &event); err != nil {
 			continue
 		}
-		if event.Commit == nil {
+		if event.Kind != jetstream.EventKindCommit {
+			continue
+		}
+		if event.Commit.Operation != jetstream.CommitOperationCreate {
 			continue
 		}
 		commit := *event.Commit
-		if commit.OpType != "c" {
-			continue
-		}
 		if commit.Collection == "app.bsky.feed.post" {
 			var post appbsky.FeedPost
 			postUri := fmt.Sprintf("at://%s/%s/%s", event.Did, commit.Collection, commit.RKey)
